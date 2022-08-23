@@ -46,7 +46,7 @@ func main() {
 		if err != nil {
 			return
 		} else {
-			if interval < 60 || interval > 3600 {
+			if interval < 1 || interval > 3600 {
 				config.Log_intervall = 60
 			} else {
 				config.Log_intervall = int(interval)
@@ -100,16 +100,16 @@ func main() {
 		}
 
 		if !config.Pool_mode {
-			fmt.Printf("%v %d miners connected, IB:%d MB:%d MBR:%d MBO:%d - MINING @ %s\n", time.Now().Format(time.Stamp), proxy.CountMiners(), proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
+			fmt.Printf("\r%v %d miners connected, IB:%d MB:%d MBR:%d MBO:%d - MINING @ %s ...", time.Now().Format(time.Stamp), proxy.CountMiners(), proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
 		} else {
-			fmt.Printf("%v %d miners connected, Pool stats: IB:%d MB:%d MBR:%d MBO:%d - MINING @ %s\n", time.Now().Format(time.Stamp), proxy.CountMiners(), proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
+			fmt.Printf("\r%v %d miners connected, Pool stats: (%d) IB:%d MB:%d MBR:%d MBO:%d - MINING @ %s ...", time.Now().Format(time.Stamp), proxy.CountMiners(), proxy.Shares, proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
 		}
 		rwmutex.RLock()
-		for i := range proxy.Wallet_count {
-			if proxy.Wallet_count[i] > 1 {
-				fmt.Printf("%v Wallet %v, %d miners\n", time.Now().Format(time.Stamp), i, proxy.Wallet_count[i])
-			}
-		}
+		// for i := range proxy.Wallet_count {
+		// 	if proxy.Wallet_count[i] > 1 {
+		// 		fmt.Printf("%v Wallet %v, %d miners\n", time.Now().Format(time.Stamp), i, proxy.Wallet_count[i])
+		// 	}
+		// }
 		rwmutex.RUnlock()
 	}
 }

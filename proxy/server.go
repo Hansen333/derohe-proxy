@@ -59,7 +59,7 @@ var client_list_mutex sync.Mutex
 var client_list = map[*websocket.Conn]*user_session{}
 
 var miners_count int
-var shares uint64
+var Shares uint64
 var Wallet_count map[string]uint
 var Address string
 
@@ -176,11 +176,11 @@ func onWebsocket(w http.ResponseWriter, r *http.Request) {
 	client_list[wsConn] = &session
 	Wallet_count[client_list[wsConn].address.String()]++
 	Address = address
-	if !config.Pool_mode {
-		fmt.Printf("%v Incoming connection: %v, Wallet: %v\n", time.Now().Format(time.Stamp), wsConn.RemoteAddr().String(), address)
-	} else {
-		fmt.Printf("%v Incoming connection: %v\n", time.Now().Format(time.Stamp), wsConn.RemoteAddr().String())
-	}
+	// if !config.Pool_mode {
+	// 	fmt.Printf("%v Incoming connection: %v, Wallet: %v\n", time.Now().Format(time.Stamp), wsConn.RemoteAddr().String(), address)
+	// } else {
+	// 	fmt.Printf("%v Incoming connection: %v\n", time.Now().Format(time.Stamp), wsConn.RemoteAddr().String())
+	// }
 }
 
 // forward results to daemon
@@ -216,10 +216,10 @@ func newUpgrader() *websocket.Upgrader {
 		} else {
 			SendToDaemon(data)
 			if !config.Pool_mode {
-				fmt.Printf("%v Submitting result from miner: %v, Wallet: %v\n", time.Now().Format(time.Stamp), c.RemoteAddr().String(), client_list[c].address.String())
+				// fmt.Printf("%v Submitting result from miner: %v, Wallet: %v\n", time.Now().Format(time.Stamp), c.RemoteAddr().String(), client_list[c].address.String())
 			} else {
-				shares++
-				fmt.Printf("%v Shares submitted: %d\n", time.Now().Format(time.Stamp), shares)
+				Shares++
+				// fmt.Printf("%v Shares submitted: %d\n", time.Now().Format(time.Stamp), Shares)
 			}
 		}
 	})
@@ -228,7 +228,7 @@ func newUpgrader() *websocket.Upgrader {
 		client_list_mutex.Lock()
 		defer client_list_mutex.Unlock()
 		Wallet_count[client_list[c].address.String()]--
-		fmt.Printf("%v Lost connection: %v\n", time.Now().Format(time.Stamp), c.RemoteAddr().String())
+		// fmt.Printf("%v Lost connection: %v\n", time.Now().Format(time.Stamp), c.RemoteAddr().String())
 		delete(client_list, c)
 	})
 

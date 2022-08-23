@@ -80,6 +80,7 @@ func Start_client(w string) {
 		for {
 			msg_type, recv_data, err := connection.ReadMessage()
 			if err != nil {
+				fmt.Printf("\nError: %s\n", err.Error())
 				break
 			}
 
