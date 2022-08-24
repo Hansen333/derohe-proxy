@@ -215,12 +215,12 @@ func newUpgrader() *websocket.Upgrader {
 			return
 		} else {
 			SendToDaemon(data)
-			if !config.Pool_mode {
-				// fmt.Printf("%v Submitting result from miner: %v, Wallet: %v\n", time.Now().Format(time.Stamp), c.RemoteAddr().String(), client_list[c].address.String())
-			} else {
-				Shares++
-				// fmt.Printf("%v Shares submitted: %d\n", time.Now().Format(time.Stamp), Shares)
-			}
+			// if !config.Pool_mode {
+			// 	// fmt.Printf("%v Submitting result from miner: %v, Wallet: %v\n", time.Now().Format(time.Stamp), c.RemoteAddr().String(), client_list[c].address.String())
+			// } else {
+			Shares++
+			// fmt.Printf("%v Shares submitted: %d\n", time.Now().Format(time.Stamp), Shares)
+			// }
 		}
 	})
 

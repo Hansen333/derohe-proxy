@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/docopt/docopt-go"
@@ -14,7 +13,7 @@ import (
 
 func main() {
 	var err error
-	var rwmutex sync.RWMutex
+	// var rwmutex sync.RWMutex
 
 	config.Arguments, err = docopt.Parse(config.Command_line, nil, true, "pre-alpha", false)
 
@@ -81,6 +80,7 @@ func main() {
 	go proxy.Start_client(proxy.Address)
 	go proxy.SendUpdateToDaemon()
 
+	fmt.Print("V == Velocity [ T / ((Now - Start)/600) ] - T == Total Blocks Shares - S == Session\n")
 	for {
 		time.Sleep(time.Second * time.Duration(config.Log_intervall))
 
@@ -99,17 +99,20 @@ func main() {
 			hash_rate_string = fmt.Sprintf("%d H/s", int(proxy.Hashrate))
 		}
 
-		if !config.Pool_mode {
-			fmt.Printf("\r%v %d miners connected, IB:%d MB:%d MBR:%d MBO:%d - MINING @ %s ...", time.Now().Format(time.Stamp), proxy.CountMiners(), proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
-		} else {
-			fmt.Printf("\r%v %d miners connected, Pool stats: (%d) IB:%d MB:%d MBR:%d MBO:%d - MINING @ %s ...", time.Now().Format(time.Stamp), proxy.CountMiners(), proxy.Shares, proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
+		Velocity := float64(0)
+
+		if proxy.Shares >= 1 {
+			Velocity = (float64(proxy.Shares) / ((float64(time.Now().Unix()) - float64(proxy.ProxyStart)) / 600))
 		}
-		rwmutex.RLock()
-		// for i := range proxy.Wallet_count {
-		// 	if proxy.Wallet_count[i] > 1 {
-		// 		fmt.Printf("%v Wallet %v, %d miners\n", time.Now().Format(time.Stamp), i, proxy.Wallet_count[i])
-		// 	}
-		// }
-		rwmutex.RUnlock()
+
+		fmt.Printf("\r%v %d miners connected, V:%.4f T:%d S:%d IB:%d MB:%d MBR:%d MBO:%d MINING @ %s ...", time.Now().Format(time.Stamp), proxy.CountMiners(), Velocity, proxy.Shares, proxy.ReconnectCount, proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
+
+		// rwmutex.RLock()
+		// // for i := range proxy.Wallet_count {
+		// // 	if proxy.Wallet_count[i] > 1 {
+		// // 		fmt.Printf("%v Wallet %v, %d miners\n", time.Now().Format(time.Stamp), i, proxy.Wallet_count[i])
+		// // 	}
+		// // }
+		// rwmutex.RUnlock()
 	}
 }

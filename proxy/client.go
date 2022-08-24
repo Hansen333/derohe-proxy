@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
+	"os"
 	"time"
 
 	"derohe-proxy/config"
@@ -46,13 +47,21 @@ var Orphans uint64
 var ModdedNode bool = false
 var Hashrate float64
 
+var ReconnectCount = int(0)
+
+var ProxyStart int64
+
 // proxy-client
 func Start_client(w string) {
 	var err error
 	var last_diff uint64
 	var last_height uint64
 
+	ProxyStart = time.Now().Unix()
+
 	rand.Seed(time.Now().UnixMilli())
+
+	var error_threshold = int(0)
 
 	for {
 
@@ -63,15 +72,22 @@ func Start_client(w string) {
 			InsecureSkipVerify: true,
 		}
 
-		if !config.Pool_mode {
-			fmt.Printf("%v Connected to node %v\n", time.Now().Format(time.Stamp), config.Daemon_address)
-		} else {
-			fmt.Printf("%v Connected to node %v using wallet %v\n", time.Now().Format(time.Stamp), config.Daemon_address, w)
-		}
+		// if !config.Pool_mode {
+		// 	fmt.Printf("%v Connected to node %v\n", time.Now().Format(time.Stamp), config.Daemon_address)
+		// } else {
+		// 	fmt.Printf("%v Connected to node %v using wallet %v\n", time.Now().Format(time.Stamp), config.Daemon_address, w)
+		// }
 		connection, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
-			time.Sleep(5 * time.Second)
-			fmt.Println(err)
+			time.Sleep(100 * time.Microsecond)
+			// fmt.Println(err)
+			error_threshold++
+			ReconnectCount++
+
+			if error_threshold > 100 {
+				fmt.Print("Too Many Connection Error!\n")
+				os.Exit(0)
+			}
 			continue
 		}
 
@@ -80,7 +96,7 @@ func Start_client(w string) {
 		for {
 			msg_type, recv_data, err := connection.ReadMessage()
 			if err != nil {
-				fmt.Printf("\nError: %s\n", err.Error())
+				// fmt.Printf("\nError: %s\n", err.Error())
 				break
 			}
 
@@ -92,6 +108,7 @@ func Start_client(w string) {
 				continue
 			}
 
+			error_threshold = 0
 			Blocks = params.Blocks
 			Minis = params.MiniBlocks
 			Rejected = params.Rejected
