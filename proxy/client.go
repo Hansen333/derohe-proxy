@@ -49,15 +49,101 @@ var Hashrate float64
 
 var ReconnectCount = int(0)
 
-var ProxyStart int64
+var ProxyStart = time.Now()
+
+var old_block_count uint64
+
+func setBlocks(count uint64) {
+
+	if count == 0 {
+		return
+	}
+
+	if count < old_block_count {
+		old_block_count = count
+		Blocks += count
+		return
+	}
+
+	if count > old_block_count {
+
+		Blocks += (count - old_block_count)
+		old_block_count = count
+	}
+
+}
+
+var old_minis_count uint64
+
+func setMinis(count uint64) {
+
+	if count == 0 {
+		return
+	}
+
+	if count < old_minis_count {
+		old_minis_count = count
+		Minis += count
+		return
+	}
+
+	if count > old_minis_count {
+
+		Minis += (count - old_minis_count)
+		old_minis_count = count
+	}
+
+}
+
+var old_orphans_count uint64
+
+func setOrphans(count uint64) {
+
+	if count == 0 {
+		return
+	}
+
+	if count < old_orphans_count {
+		old_orphans_count = count
+		Orphans += count
+		return
+	}
+
+	if count > old_orphans_count {
+
+		Orphans += (count - old_orphans_count)
+		old_orphans_count = count
+	}
+
+}
+
+var old_rejected_count uint64
+
+func setRejected(count uint64) {
+
+	if count == 0 {
+		return
+	}
+
+	if count < old_rejected_count {
+		old_rejected_count = count
+		Rejected += count
+		return
+	}
+
+	if count > old_rejected_count {
+
+		Rejected += (count - old_rejected_count)
+		old_rejected_count = count
+	}
+
+}
 
 // proxy-client
 func Start_client(w string) {
 	var err error
 	var last_diff uint64
 	var last_height uint64
-
-	ProxyStart = time.Now().Unix()
 
 	rand.Seed(time.Now().UnixMilli())
 
@@ -82,7 +168,6 @@ func Start_client(w string) {
 			time.Sleep(100 * time.Microsecond)
 			// fmt.Println(err)
 			error_threshold++
-			ReconnectCount++
 
 			if error_threshold > 100 {
 				fmt.Print("Too Many Connection Error!\n")
@@ -90,6 +175,7 @@ func Start_client(w string) {
 			}
 			continue
 		}
+		ReconnectCount++
 
 		var params GetBlockTemplate_Result
 
@@ -109,10 +195,10 @@ func Start_client(w string) {
 			}
 
 			error_threshold = 0
-			Blocks = params.Blocks
-			Minis = params.MiniBlocks
-			Rejected = params.Rejected
-			Orphans = params.Orphans
+			setBlocks(params.Blocks)
+			setMinis(params.MiniBlocks)
+			setRejected(params.Rejected)
+			setOrphans(params.Orphans)
 
 			if ModdedNode != params.Hansen33Mod {
 				if params.Hansen33Mod {

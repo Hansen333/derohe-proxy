@@ -80,7 +80,7 @@ func main() {
 	go proxy.Start_client(proxy.Address)
 	go proxy.SendUpdateToDaemon()
 
-	fmt.Print("V == Velocity [ T / ((Now - Start)/600) ] - T == Total Blocks Shares - S == Session\n")
+	fmt.Print("\tM == Miners - V == Velocity [ T / ((Now - Start)/600) ] - T == Total Blocks Shares - S == Session\n")
 	for {
 		time.Sleep(time.Second * time.Duration(config.Log_intervall))
 
@@ -102,10 +102,16 @@ func main() {
 		Velocity := float64(0)
 
 		if proxy.Shares >= 1 {
-			Velocity = (float64(proxy.Shares) / ((float64(time.Now().Unix()) - float64(proxy.ProxyStart)) / 600))
+			Velocity = (float64(proxy.Shares) / ((float64(time.Now().Unix()) - float64(proxy.ProxyStart.Unix())) / 600))
 		}
 
-		fmt.Printf("\r%v %d miners connected, V:%.4f T:%d S:%d IB:%d MB:%d MBR:%d MBO:%d MINING @ %s ...", time.Now().Format(time.Stamp), proxy.CountMiners(), Velocity, proxy.Shares, proxy.ReconnectCount, proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
+		orphan_loss := float64(0)
+
+		if proxy.Orphans >= 1 && proxy.Shares >= 1 {
+			orphan_loss = float64(float64(float64(float64(proxy.Orphans)/float64(proxy.Shares))) * 100)
+		}
+
+		fmt.Printf("\r[ %s ] M:%d V:%.4f T:%d OL:%.3f S:%d IB:%d MB:%d MBR:%d MBO:%d MINING @ %s ...", time.Now().Sub(proxy.ProxyStart).Round(time.Second).String(), proxy.CountMiners(), Velocity, proxy.Shares, orphan_loss, proxy.ReconnectCount, proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
 
 		// rwmutex.RLock()
 		// // for i := range proxy.Wallet_count {
