@@ -80,7 +80,7 @@ func main() {
 	go proxy.Start_client(proxy.Address)
 	go proxy.SendUpdateToDaemon()
 
-	fmt.Print("\tM == Miners - V == Velocity [ T / ((Now - Start)/600) ] - T == Total Blocks Shares - S == Session\n")
+	fmt.Print("M == Miners - V == Velocity (T per 10 min) - T == Total Blocks Shares - S == Session - OL == Orphan Loss\n")
 	for {
 		time.Sleep(time.Second * time.Duration(config.Log_intervall))
 
@@ -101,17 +101,26 @@ func main() {
 
 		Velocity := float64(0)
 
-		if proxy.Shares >= 1 {
-			Velocity = (float64(proxy.Shares) / ((float64(time.Now().Unix()) - float64(proxy.ProxyStart.Unix())) / 600))
+		total_blocks := proxy.Blocks + proxy.Minis
+
+		if total_blocks >= 1 {
+			Velocity = (float64(total_blocks) / ((float64(time.Now().Unix()) - float64(proxy.ProxyStart.Unix())) / 600))
 		}
 
 		orphan_loss := float64(0)
 
-		if proxy.Orphans >= 1 && proxy.Shares >= 1 {
-			orphan_loss = float64(float64(float64(float64(proxy.Orphans)/float64(proxy.Shares))) * 100)
+		if proxy.Orphans >= 1 && total_blocks >= 1 {
+			orphan_loss = float64(float64(float64(float64(proxy.Orphans)/float64(total_blocks))) * 100)
 		}
 
-		fmt.Printf("\r[ %s ] M:%d V:%.4f T:%d OL:%.3f S:%d IB:%d MB:%d MBR:%d MBO:%d MINING @ %s ...", time.Now().Sub(proxy.ProxyStart).Round(time.Second).String(), proxy.CountMiners(), Velocity, proxy.Shares, orphan_loss, proxy.ReconnectCount, proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
+		// l.SetPrompt(fmt.Sprintf("\033[1m\033[32mDERO HE (\033[31m%s-mod\033[32m):%s \033[0m"+color+"%d/%d [%d/%d] "+pcolor+"P %d/%d TXp %d:%d \033[32mNW %s >MN %d/%d [%d/%d] %s>>\033[0m ",
+
+		orphan_color := "\033[0m"
+		if orphan_loss > 1.5 {
+			orphan_color = "\033[31m"
+		}
+
+		fmt.Printf("\r[ %s ] M:\033[32m%d\033[0m V:\033[34m%.4f\033[0m T:%d OL:"+orphan_color+"%.3f\033[0m S:%d IB:%d MB:%d MBR:%d MBO:%d MINING @ \033[32m%s\033[0m ...", time.Now().Sub(proxy.ProxyStart).Round(time.Second).String(), proxy.CountMiners(), Velocity, proxy.Shares, orphan_loss, proxy.ReconnectCount, proxy.Blocks, proxy.Minis, proxy.Rejected, proxy.Orphans, hash_rate_string)
 
 		// rwmutex.RLock()
 		// // for i := range proxy.Wallet_count {
